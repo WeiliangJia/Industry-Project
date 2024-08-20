@@ -15,4 +15,4 @@ def read_in_chunks(file_path, chunk_size=128*128):
             print(chunk)
             print("-" * 40)
 
-read_in_chunks('ecc_dti.dpf')
+read_in_chunks('image file/ecc_dti.dpf')
