@@ -67,5 +67,47 @@ def CNN_model1(input_shape=(128, 128, 35), num_classes=2):
 
     return model
 
+def yolo_loss_function(y_true, y_pred, num_classes=2, lambda_coord=5, lambda_noobj=0.5):
+    """
+    Args:
+    y_true: Ground truth tensor of shape (batch_size, grid_size, grid_size, 3, 5 + num_classes)
+            Each box has 5 values: (x, y, w, h, object_confidence) + num_classes for class probabilities.
+    y_pred: Predicted tensor of the same shape as y_true.
+    num_classes: The number of object classes (in this case, 2 for tumor and non-tumor).
+    lambda_coord: Weighting factor for the coordinate loss (to prioritize localization accuracy).
+    lambda_noobj: Weighting factor for the no-object confidence loss (to suppress false positives).
+    """
+    # Split true and predicted values into components
+    pred_box = y_pred[..., :4]  # (x, y, w, h)
+    pred_confidence = y_pred[..., 4]  # object confidence
+    pred_class_probs = y_pred[..., 5:]  # class probabilities
+    
+    true_box = y_true[..., :4]  # (x, y, w, h)
+    true_confidence = y_true[..., 4]  # object confidence
+    true_class_probs = y_true[..., 5:]  # class probabilities
+    
+    # --- 1. Localization Loss (Bounding Box Loss) ---
+    # Coordinates (x, y) and dimensions (w, h) MSE Loss
+    coord_loss = tf.reduce_sum(tf.square(true_box - pred_box), axis=-1)
+    coord_loss = lambda_coord * tf.reduce_sum(true_confidence * coord_loss)  # Weighting only where object exists
+
+    # --- 2. Objectness Loss ---
+    # Binary cross-entropy between true and predicted object confidence
+    objectness_loss = tf.keras.losses.binary_crossentropy(true_confidence, pred_confidence)
+    objectness_loss = tf.reduce_sum(objectness_loss)
+
+    # No-object loss (penalize high confidence in areas with no objects)
+    no_object_loss = lambda_noobj * tf.reduce_sum((1 - true_confidence) * tf.square(pred_confidence))
+
+    # --- 3. Classification Loss ---
+    # Categorical cross-entropy for class probabilities
+    class_loss = tf.keras.losses.categorical_crossentropy(true_class_probs, pred_class_probs)
+    class_loss = tf.reduce_sum(true_confidence * class_loss)  # Only compute where objects exist
+
+    # Total loss
+    total_loss = coord_loss + objectness_loss + no_object_loss + class_loss
+
+    return total_loss
+
 
 
