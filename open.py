@@ -5,6 +5,7 @@ from PIL import Image, ImageTk
 import nibabel as nib
 import numpy as np
 from YOLO import OD
+from YOLO import predict_tumor
 
 class ImageUploaderApp:
     def __init__(self, root):
