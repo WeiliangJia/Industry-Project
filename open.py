@@ -37,10 +37,13 @@ class ImageUploaderApp:
             # Assign upload function only to the first button
             if i == 0:
                 button = tk.Button(frame, text=button_text, command=self.upload_image)
+            elif i == 1:  # For the tumor detection button
+                button = tk.Button(frame, text=button_text, command=self.detect_tumor)  # Use detect_tumor method
             else:
                 # Assign other functions to the remaining buttons
                 #后面加功能在这加###
-                button = tk.Button(frame, text=button_text, command=lambda l=i: self.OD_predict(l))
+
+                #button = tk.Button(frame, text=button_text, command=lambda l=i: self.OD_predict(l))
 
                 button = tk.Button(frame, text=button_text, command=lambda l=i: self.other_function(l))
 
@@ -90,6 +93,12 @@ class ImageUploaderApp:
             self.image_labels[0].config(image=img_tk)
             self.image_labels[0].image = img_tk
             messagebox.showinfo("Success", f"Image uploaded: {file_path}")
+    def detect_tumor(self):
+        if self.image_paths[0]:
+            prediction, tumor_class = predict_tumor(self.image_paths[0])
+            messagebox.showinfo("Result", f"Prediction: {prediction}")
+        else:
+            messagebox.showerror("Error", "Upload image first.")
 
     def other_function(self, index):
         # Example: Print a message or perform any other action
