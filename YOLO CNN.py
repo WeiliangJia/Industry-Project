@@ -241,14 +241,16 @@ from tensorflow.keras.callbacks import EarlyStopping
 #                    callbacks=[early_stop])
 # supervised_CNN.save('brain_tumor_cnn_model.h5')
 from tensorflow.keras.models import load_model
-model = load_model('brain_tumor_cnn_model.h5')
+def predict_tumor(image_path):
+    model = load_model('brain_tumor_cnn_model.h5')
 # test_loss, test_accuracy = supervised_CNN.evaluate(test_set, label_test)
 # print(f'Test Loss: {test_loss}, Test Accuracy: {test_accuracy}')
-img = cv2.imread(r'C:\Users\a\Desktop\3021 Industry Project\archive\Testing\notumor\Te-no_0014.jpg')
-img_re = cv2.resize(img, (128,128))
-img_resized = np.array(img_re, dtype=np.float32)
-img_resized /= 255.0
-img_resized = np.expand_dims(img_resized, axis=0)
-pred = model.predict(img_resized)
-class1 = (pred > 0.5).astype(int)
-print(pred)
+    img = cv2.imread(r'C:\Users\a\Desktop\3021 Industry Project\archive\Testing\notumor\Te-no_0014.jpg')
+    img_re = cv2.resize(img, (128,128))
+    img_resized = np.array(img_re, dtype=np.float32)
+    img_resized /= 255.0
+    img_resized = np.expand_dims(img_resized, axis=0)
+    pred = model.predict(img_resized)
+    class1 = (pred > 0.5).astype(int)
+    print(pred)
+    return pred, class1
