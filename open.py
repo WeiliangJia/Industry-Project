@@ -4,8 +4,7 @@ from tkinter import messagebox
 from PIL import Image, ImageTk
 import nibabel as nib
 import numpy as np
-from YOLO import OD
-from YOLO import predict_tumor
+from detection import predict_tumor
 
 class ImageUploaderApp:
     def __init__(self, root):
@@ -63,38 +62,51 @@ class ImageUploaderApp:
 
     def upload_image(self):
         # Open file dialog to select image
-        file_path = filedialog.askopenfilename(filetypes=[("Analyze/NIfTI files", "*.hdr *.img *.nii")])
+        file_path = filedialog.askopenfilename(filetypes=[("Image files", "*.hdr *.img *.nii *.jpg *.jpeg")])
         if file_path:
             self.image_paths[0] = file_path  # Only store path for the first image
-            # Load the image using nibabel
-            img = nib.load(file_path)
-            img_data = img.get_fdata()
-            # Debugging: print the shape and dtype of the image data
-            print(f"Data shape: {img_data.shape}, dtype: {img_data.dtype}")
+            # Check if the file is a jpg or NIfTI file
+            if file_path.lower().endswith(('.jpg', '.jpeg')):
+                # Load jpg image using PIL
+                img_pil = Image.open(file_path)
+                
+                # Optionally resize the image if needed
+                img_pil = img_pil.resize((128, 128))
 
-            # Handle 3D or 4D data by selecting a 2D slice
-            if img_data.ndim == 3:
-                slice_2d = img_data[:, :, img_data.shape[2] // 2]
-            elif img_data.ndim == 4:
-                slice_2d = img_data[:, :, img_data.shape[2] // 2, 0]
+                img_tk = ImageTk.PhotoImage(img_pil)
+                self.image_labels[0].config(image=img_tk)
+                self.image_labels[0].image = img_tk
+                messagebox.showinfo("Success", f"Image uploaded: {file_path}")
+
             else:
-                messagebox.showerror("Error", "Unsupported image dimensions.")
-                return
+                # Load the image using nibabel for NIfTI files
+                img = nib.load(file_path)
+                img_data = img.get_fdata()
+
+                # Handle 3D or 4D data by selecting a 2D slice
+                if img_data.ndim == 3:
+                    slice_2d = img_data[:, :, img_data.shape[2] // 2]
+                elif img_data.ndim == 4:
+                    slice_2d = img_data[:, :, img_data.shape[2] // 2, 0]
+                else:
+                    messagebox.showerror("Error", "Unsupported image dimensions.")
+                    return
 
             # Normalize the slice data for display
-            slice_2d_normalized = (slice_2d - np.min(slice_2d)) / (np.max(slice_2d) - np.min(slice_2d)) * 255
-            slice_2d_normalized = slice_2d_normalized.astype(np.uint8)
+                slice_2d_normalized = (slice_2d - np.min(slice_2d)) / (np.max(slice_2d) - np.min(slice_2d)) * 255
+                slice_2d_normalized = slice_2d_normalized.astype(np.uint8)
 
-            # Convert to PIL Image for display
-            img_pil = Image.fromarray(slice_2d_normalized)
-            #img_pil = img_pil.resize((128, 128), Image.ANTIALIAS)
+                # Convert to PIL Image for display
+                img_pil = Image.fromarray(slice_2d_normalized)
 
-            img_tk = ImageTk.PhotoImage(img_pil)
-            self.image_labels[0].config(image=img_tk)
-            self.image_labels[0].image = img_tk
-            messagebox.showinfo("Success", f"Image uploaded: {file_path}")
+                img_tk = ImageTk.PhotoImage(img_pil)
+                self.image_labels[0].config(image=img_tk)
+                self.image_labels[0].image = img_tk
+                messagebox.showinfo("Success", f"Image uploaded: {file_path}")
+
     def detect_tumor(self):
         if self.image_paths[0]:
+            # print(f"Image path: {self.image_paths[0]}")
             prediction, tumor_class = predict_tumor(self.image_paths[0])
             messagebox.showinfo("Result", f"Prediction: {prediction}")
         else:
