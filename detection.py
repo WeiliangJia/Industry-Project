@@ -32,56 +32,56 @@ def read_one_file(path):
 # read_one_file(path1)        
 
 #read file
-def load_data(path, image_size=(128,128)):
-    #numpy list
-    images = []
-    labels = []
-    for file in os.listdir(path):
-        if file.endswith(".jpg") or file.endswith(".jpeg"):
-            img_path = os.path.join(path, file)
-            img = cv2.imread(img_path)  
-            img = cv2.resize(img, image_size)  # resize
-            # img = cv2.cvtColor(img, cv2.COLOR_BGR2RGB)  # 将BGR转换为RGB（OpenCV默认使用BGR）
-            img = img / 255.0  # normalization
-            if path[-1] == 'r':
-                images.append(img)
-                labels.append(0)
-            else:
-                images.append(img)
-                labels.append(1)
-    return images,labels
+# def load_data(path, image_size=(128,128)):
+#     #numpy list
+#     images = []
+#     labels = []
+#     for file in os.listdir(path):
+#         if file.endswith(".jpg") or file.endswith(".jpeg"):
+#             img_path = os.path.join(path, file)
+#             img = cv2.imread(img_path)  
+#             img = cv2.resize(img, image_size)  # resize
+#             # img = cv2.cvtColor(img, cv2.COLOR_BGR2RGB)  # 将BGR转换为RGB（OpenCV默认使用BGR）
+#             img = img / 255.0  # normalization
+#             if path[-1] == 'r':
+#                 images.append(img)
+#                 labels.append(0)
+#             else:
+#                 images.append(img)
+#                 labels.append(1)
+#     return images,labels
 
-path_positive_train = r'C:\Users\a\Desktop\3021 Industry Project\archive\Training\meningioma'
-path_negative_train = r'C:\Users\a\Desktop\3021 Industry Project\archive\Training\notumor'
-train_set1, y1 = load_data(path_positive_train)
-train_set2, y2 = load_data(path_negative_train)
-train_set = train_set1 + train_set2
-label_train = y1 + y2
+# path_positive_train = r'C:\Users\a\Desktop\3021 Industry Project\archive\Training\meningioma'
+# path_negative_train = r'C:\Users\a\Desktop\3021 Industry Project\archive\Training\notumor'
+# train_set1, y1 = load_data(path_positive_train)
+# train_set2, y2 = load_data(path_negative_train)
+# train_set = train_set1 + train_set2
+# label_train = y1 + y2
+
+# # 将列表转换为 NumPy 数组
+# train_set = np.array(train_set)
+# label_train = np.array(label_train)
+
+# indices = np.arange(len(train_set))
+# np.random.shuffle(indices)
+# train_features = train_set[indices]
+# train_labels = label_train[indices]
+
+# path_positive_test = r'C:\Users\a\Desktop\3021 Industry Project\archive\Testing\meningioma'
+# path_negative_test = r'C:\Users\a\Desktop\3021 Industry Project\archive\Testing\notumor'
+# test_set1, y3 = load_data(path_positive_test)
+# test_set2, y4 = load_data(path_negative_test)
+# test_set = test_set1 + test_set2
+# label_test = y3 + y4
 
 # 将列表转换为 NumPy 数组
-train_set = np.array(train_set)
-label_train = np.array(label_train)
+# test_set = np.array(test_set)
+# label_test = np.array(label_test)
 
-indices = np.arange(len(train_set))
-np.random.shuffle(indices)
-train_features = train_set[indices]
-train_labels = label_train[indices]
-
-path_positive_test = r'C:\Users\a\Desktop\3021 Industry Project\archive\Testing\meningioma'
-path_negative_test = r'C:\Users\a\Desktop\3021 Industry Project\archive\Testing\notumor'
-test_set1, y3 = load_data(path_positive_test)
-test_set2, y4 = load_data(path_negative_test)
-test_set = test_set1 + test_set2
-label_test = y3 + y4
-
-# 将列表转换为 NumPy 数组
-test_set = np.array(test_set)
-label_test = np.array(label_test)
-
-indices2 = np.arange(len(test_set))
-np.random.shuffle(indices2)
-test_features = test_set[indices2]
-test_labels = label_test[indices2]
+# indices2 = np.arange(len(test_set))
+# np.random.shuffle(indices2)
+# test_features = test_set[indices2]
+# test_labels = label_test[indices2]
 # print(train_set.shape)
 # print(len(train_set))
 
@@ -241,16 +241,49 @@ from tensorflow.keras.callbacks import EarlyStopping
 #                    callbacks=[early_stop])
 # supervised_CNN.save('brain_tumor_cnn_model.h5')
 from tensorflow.keras.models import load_model
+from PIL import Image
 def predict_tumor(image_path):
     model = load_model('brain_tumor_cnn_model.h5')
-# test_loss, test_accuracy = supervised_CNN.evaluate(test_set, label_test)
-# print(f'Test Loss: {test_loss}, Test Accuracy: {test_accuracy}')
-    img = cv2.imread(r'C:\Users\a\Desktop\3021 Industry Project\archive\Testing\notumor\Te-no_0014.jpg')
-    img_re = cv2.resize(img, (128,128))
-    img_resized = np.array(img_re, dtype=np.float32)
-    img_resized /= 255.0
-    img_resized = np.expand_dims(img_resized, axis=0)
-    pred = model.predict(img_resized)
+    
+    # 判断文件类型
+    if image_path.lower().endswith(('.jpg', '.jpeg')):
+        # 处理 JPG 图像
+        img = Image.open(image_path)
+        img = img.resize((128, 128))  # 调整大小以适应模型输入
+        img = np.array(img)
+
+        # 如果是灰度图像，扩展为3个通道
+        if len(img.shape) == 2:
+            img = np.stack((img,) * 3, axis=-1)
+        elif img.shape[-1] == 1:
+            img = np.repeat(img, 3, axis=-1)
+    
+    else:
+        # 使用 nibabel 加载 NIfTI 图像
+        img = nib.load(image_path).get_fdata()
+
+        # 处理 3D 或 4D 数据，选择一个 2D 切片
+        if img.ndim == 3:
+            slice_2d = img[:, :, img.shape[2] // 2]
+        elif img.ndim == 4:
+            slice_2d = img[:, :, img.shape[2] // 2, 0]
+        else:
+            raise ValueError("Unsupported image dimensions.")
+        
+        # 调整大小并转换图像以匹配模型输入
+        img = cv2.resize(slice_2d, (128, 128))
+        img = np.stack((img,) * 3, axis=-1)  # 将灰度图像转换为 3 通道
+
+    # 归一化图像数据
+    img = img.astype(np.float32) / 255.0
+
+    # 添加批次维度
+    img = np.expand_dims(img, axis=0)
+
+    # 进行预测
+    pred = model.predict(img)
     class1 = (pred > 0.5).astype(int)
-    print(pred)
+
+    # 输出预测结果
+    print(f"Prediction: {pred}, Tumor Class: {class1}")
     return pred, class1
