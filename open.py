@@ -5,6 +5,7 @@ from PIL import Image, ImageTk
 import nibabel as nib
 import numpy as np
 from detection import predict_tumor
+from model import observation_tumour
 
 class ImageUploaderApp:
     def __init__(self, root):
@@ -38,6 +39,8 @@ class ImageUploaderApp:
                 button = tk.Button(frame, text=button_text, command=self.upload_image)
             elif i == 1:  # For the tumor detection button
                 button = tk.Button(frame, text=button_text, command=self.detect_tumor)  # Use detect_tumor method
+            elif i == 4:  # For tumor observation
+                button = tk.Button(frame, text=button_text, command=self.observe_tumor)  # Tumor observation function
             else:
                 # Assign other functions to the remaining buttons
                 #后面加功能在这加###
