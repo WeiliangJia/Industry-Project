@@ -114,6 +114,18 @@ class ImageUploaderApp:
             messagebox.showinfo("Result", f"Prediction: {prediction}")
         else:
             messagebox.showerror("Error", "Upload image first.")
+            
+    def observe_tumor(self):
+        if self.image_paths[0]:
+            processed_image = observation_tumour(self.image_paths[0])
+            img_pil = Image.fromarray(processed_image)
+            img_pil = img_pil.resize((128, 128))
+            img_tk = ImageTk.PhotoImage(img_pil)
+            self.image_labels[4].config(image=img_tk)
+            self.image_labels[4].image = img_tk
+            messagebox.showinfo("Success", "Tumor observation completed.")
+        else:
+            messagebox.showerror("Error", "Upload image first.")
 
     def other_function(self, index):
         # Example: Print a message or perform any other action
