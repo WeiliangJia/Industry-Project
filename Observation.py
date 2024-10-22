@@ -3,12 +3,7 @@ import tensorflow as tf
 from tensorflow import keras
 # print(keras.__version__)
 import numpy as np
-import pandas as pd
-import matplotlib.pyplot as plt
-import os
-import nibabel as nib
 import cv2
-import mimetypes
 
 
 #observation
