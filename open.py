@@ -5,7 +5,7 @@ from PIL import Image, ImageTk
 import nibabel as nib
 import numpy as np
 from detection import predict_tumor
-from model import observation_tumour
+from Observation import observation_tumour
 
 class ImageUploaderApp:
     def __init__(self, root):
